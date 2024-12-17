@@ -1,0 +1,19 @@
+# Virtual environment folder
+venv/
+
+# Environment variables file (jangan unggah file .env yang berisi data sensitif)
+.env
+
+# Log files
+*.log
+dailyclaim.log
+
+# Cache Python
+__pycache__/
+*.pyc
+
+# Data JSON file (digantikan dengan GitHub Secrets)
+data.json
+
+# MacOS system files
+.DS_Store
