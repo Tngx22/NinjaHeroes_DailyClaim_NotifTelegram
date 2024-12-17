@@ -4,8 +4,8 @@ Updated nh_claim-fast.py for GitHub with WhatsApp notifications via Twilio
 
 import concurrent.futures
 import itertools
-import json
 import os
+import json
 import platform
 import re
 import sys
@@ -19,6 +19,30 @@ from dotenv import load_dotenv
 
 # Load environment variables
 load_dotenv()
+
+# Functions to Load Data from Environment
+def load_data_from_env():
+    """Load data from the environment variable DATA_JSON."""
+    try:
+        # Get string JSON from environment variable
+        raw_data = os.getenv("DATA_JSON")
+        if not raw_data:
+            raise ValueError("Environment variable 'DATA_JSON' tidak ditemukan atau kosong.")
+
+        # Parse string JSON to Python object
+        data = json.loads(raw_data)
+
+        # Validate structure
+        if not isinstance(data, list) or not all(isinstance(item, dict) for item in data):
+            raise ValueError("Isi 'DATA_JSON' tidak valid. Harus berupa list of dictionaries.")
+
+        return data
+
+    except json.JSONDecodeError:
+        raise ValueError("DATA_JSON mengandung string yang tidak valid sebagai JSON.")
+
+    except Exception as e:
+        raise Exception(f"Terjadi kesalahan saat memuat DATA_JSON: {e}")
 
 # Constants
 ROOT = Path(__file__).parent
@@ -190,10 +214,9 @@ if __name__ == '__main__':
     os.system('cls' if SYSTEM == 'Windows' else 'clear')
 
     try:
-        with open(ROOT / 'data.json', 'r') as json_file:
-            data = json.load(json_file)
-    except FileNotFoundError:
-        print("Error: 'data.json' file not found. Create this file with your login credentials.")
+        data = load_data_from_env()
+    except Exception as e:
+        print(f"Error: {e}")
         sys.exit(1)
 
     main(data)
