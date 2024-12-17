@@ -1,5 +1,4 @@
-requests
+cloudscraper
 python-dotenv
 beautifulsoup4
-cloudscraper
-twilio
+requests
