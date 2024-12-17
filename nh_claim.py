@@ -1,6 +1,7 @@
 import os
 import json
 import time
+import requests
 import cloudscraper
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
@@ -20,11 +21,9 @@ PROD_POST = 'periodId'
 SRVR_POST = 'selserver'
 REWARD_CLS = '.reward-star'
 
-# Twilio API credentials
-TWILIO_SID = os.getenv("TWILIO_SID")
-TWILIO_AUTH_TOKEN = os.getenv("TWILIO_AUTH_TOKEN")
-TWILIO_WHATSAPP_NUMBER = os.getenv("TWILIO_WHATSAPP_NUMBER")
-RECIPIENT_WHATSAPP_NUMBER = os.getenv("RECIPIENT_WHATSAPP_NUMBER")
+# Telegram Bot credentials
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 
 # Function to load user data from environment variable
@@ -50,24 +49,28 @@ def load_data_from_env():
         raise Exception(f"Terjadi kesalahan saat memuat DATA_JSON: {e}")
 
 
-# Function to send WhatsApp messages using Twilio
-def send_whatsapp_message(message):
-    """Sends a WhatsApp message via Twilio."""
-    url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_SID}/Messages.json"
+# Function to send Telegram messages
+def send_telegram_message(message):
+    """Sends a message via Telegram Bot."""
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        print("Telegram credentials are not set. Please check TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID.")
+        return
+
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
     data = {
-        "From": f"whatsapp:{TWILIO_WHATSAPP_NUMBER}",
-        "To": f"whatsapp:{RECIPIENT_WHATSAPP_NUMBER}",
-        "Body": message,
+        "chat_id": TELEGRAM_CHAT_ID,
+        "text": message,
+        "parse_mode": "HTML"
     }
-    auth = (TWILIO_SID, TWILIO_AUTH_TOKEN)
+
     try:
-        response = requests.post(url, data=data, auth=auth)
-        if response.status_code == 201:
-            print("WhatsApp notification sent successfully.")
+        response = requests.post(url, data=data)
+        if response.status_code == 200:
+            print("Telegram notification sent successfully.")
         else:
-            print(f"Failed to send WhatsApp notification: {response.text}")
+            print(f"Failed to send Telegram notification: {response.status_code}, {response.text}")
     except Exception as e:
-        print(f"Error while sending message: {e}")
+        print(f"Error while sending Telegram message: {e}")
 
 
 # Function to handle login
@@ -113,7 +116,7 @@ def main():
         data = load_data_from_env()
     except Exception as e:
         print(f"Error: {e}")
-        send_whatsapp_message(f"Error in script execution: {str(e)}")
+        send_telegram_message(f"❌ Error in script execution: {str(e)}")
         return
 
     session = cloudscraper.create_scraper()  # Use cloudscraper to handle Cloudflare challenges
@@ -127,21 +130,21 @@ def main():
 
         print(f"Processing login for: {username}")
         if login(session, username, password):
-            messages.append(f"{username} logged in successfully.")
+            messages.append(f"✅ <b>{username}</b> logged in successfully.")
         else:
             fails += 1
-            messages.append(f"{username} failed to log in.")
+            messages.append(f"❌ <b>{username}</b> failed to log in.")
 
         # Add delay to avoid rate-limiting
         time.sleep(2)
 
     result_message = "\n".join(messages)
     if fails > 0:
-        result_message += f"\n{fails} login failures."
+        result_message += f"\n⚠️ <b>{fails}</b> login failures."
     else:
-        result_message += "\nAll logins successful."
+        result_message += "\n🎉 All logins successful."
 
-    send_whatsapp_message(result_message)
+    send_telegram_message(result_message)
 
 
 if __name__ == "__main__":
