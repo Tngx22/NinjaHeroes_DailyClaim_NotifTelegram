@@ -1,38 +1,40 @@
-name: Automasi Ninja Heroes Daily Claim
+name: Run Python Script Every 12 Hours
 
 on:
-  push:
-    branches:
-      - main
-  workflow_dispatch:
-
+  schedule:
+    # Menjalankan script setiap 12 jam
+    - cron: "0 */12 * * *"
+  workflow_dispatch: # Memungkinkan menjalankan workflow secara manual
+  
 jobs:
-  run-daily-claim:
+  run-script:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout repository
-      - name: Checkout repository
+      # Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # Step 2: Setup Python environment
+      # Setup Python
       - name: Setup Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.9"
 
-      # Step 3: Install dependencies
-      - name: Install dependencies
+      # Install dependencies
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests python-dotenv beautifulsoup4 cloudscraper twilio
+          pip install -r requirements.txt
 
-      # Step 4: Run the script
-      - name: Run Daily Claim Script
+      # Set environment variables from GitHub Secrets
+      - name: Set Environment Variables
         env:
-          TWILIO_SID: ${{ secrets.TWILIO_SID }}
-          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
-          TWILIO_WHATSAPP_NUMBER: ${{ secrets.TWILIO_WHATSAPP_NUMBER }}
-          RECIPIENT_WHATSAPP_NUMBER: ${{ secrets.RECIPIENT_WHATSAPP_NUMBER }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           DATA_JSON: ${{ secrets.DATA_JSON }}
+        run: echo "Environment variables configured."
+
+      # Run the Python script
+      - name: Run Script
         run: python nh_claim.py
