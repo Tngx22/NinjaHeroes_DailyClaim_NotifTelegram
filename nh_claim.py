@@ -1,12 +1,9 @@
-import requests
-import json
 import os
-import re
+import json
+import time
+import cloudscraper
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
-from time import sleep
-import concurrent.futures
-import itertools
 
 # Load environment variables
 load_dotenv()
@@ -88,19 +85,7 @@ def login(session, username, password):
     try:
         response = session.post(LOGIN_URL, data=data, headers=headers)
 
-        if response.status_code == 403:
-            print(f"Login failed for {username} (403 Forbidden). Checking for additional info...")
-            if response.headers.get("Content-Type", "").startswith("application/json"):
-                try:
-                    error_details = response.json()
-                    print(f"Server response: {error_details}")
-                except ValueError:
-                    print("Failed to parse JSON from response content.")
-            else:
-                print(f"Raw response content: {response.text}")
-            return False
-
-        elif response.status_code == 200:
+        if response.status_code == 200:
             if "success" in response.url or response.url.endswith("pembayaran.php"):
                 print(f"Successfully logged in for {username}")
                 return True
@@ -108,16 +93,16 @@ def login(session, username, password):
                 print(f"Unexpected successful response for {username}, URL: {response.url}")
                 return False
 
-        elif response.status_code == 429:
-            print(f"Rate-limit reached for {username}. Waiting before retrying...")
-            sleep(60)  # Wait for 60 seconds before retrying
+        elif response.status_code == 403:
+            print(f"Login failed for {username} (403 Forbidden). Checking for additional info...")
+            print(f"Raw response content: {response.text}")
             return False
 
         else:
             print(f"Unexpected response for {username}, status code: {response.status_code}, content: {response.text}")
             return False
 
-    except requests.RequestException as e:
+    except Exception as e:
         print(f"Error during login for {username}: {e}")
         return False
 
@@ -131,7 +116,7 @@ def main():
         send_whatsapp_message(f"Error in script execution: {str(e)}")
         return
 
-    session = requests.Session()
+    session = cloudscraper.create_scraper()  # Use cloudscraper to handle Cloudflare challenges
     fails = 0
     messages = []
 
@@ -146,6 +131,9 @@ def main():
         else:
             fails += 1
             messages.append(f"{username} failed to log in.")
+
+        # Add delay to avoid rate-limiting
+        time.sleep(2)
 
     result_message = "\n".join(messages)
     if fails > 0:
