@@ -6,7 +6,7 @@ import cloudscraper
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 
-# Load environment variables
+# Load environment variables from .env
 load_dotenv()
 
 # Constants
@@ -21,7 +21,7 @@ PROD_POST = 'periodId'
 SRVR_POST = 'selserver'
 REWARD_CLS = '.reward-star'
 
-# Telegram Bot credentials
+# Telegram Bot credentials from environment variables
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
