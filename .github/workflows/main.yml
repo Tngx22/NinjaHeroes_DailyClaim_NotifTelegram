@@ -3,7 +3,7 @@ name: Run Python Script Every 12 Hours
 on:
   schedule:
     # Menjalankan script setiap 12 jam
-    - cron: "0 */12 * * *"
+    - cron: "0 */4 * * *"
   workflow_dispatch: # Memungkinkan menjalankan workflow secara manual
   
 jobs:
