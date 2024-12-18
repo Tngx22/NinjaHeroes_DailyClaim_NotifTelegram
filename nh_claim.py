@@ -51,7 +51,7 @@ def load_data_from_env():
 
 # Function to send Telegram messages
 def send_telegram_message(message):
-    """Sends a message via Telegram Bot."""
+    """Sends a message via Telegram Bot with enhanced formatting."""
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
         print("Telegram credentials are not set. Please check TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID.")
         return
@@ -116,7 +116,7 @@ def main():
         data = load_data_from_env()
     except Exception as e:
         print(f"Error: {e}")
-        send_telegram_message(f"❌ Error in script execution: {str(e)}")
+        send_telegram_message(f"❌ <b>Error in script execution:</b> {str(e)}")
         return
 
     session = cloudscraper.create_scraper()  # Use cloudscraper to handle Cloudflare challenges
@@ -138,12 +138,19 @@ def main():
         # Add delay to avoid rate-limiting
         time.sleep(2)
 
-    result_message = "\n".join(messages)
-    if fails > 0:
-        result_message += f"\n⚠️ <b>{fails}</b> login failures."
-    else:
-        result_message += "\n🎉 All logins successful."
+    # Enhanced Telegram message formatting
+    result_message = "🌟 <b>Login Results</b> 🌟\n\n"
+    for message in messages:
+        result_message += f"{message}\n"
 
+    if fails > 0:
+        result_message += f"\n⚠️ <b>{fails}</b> login attempts failed. Please check the credentials or server status."
+    else:
+        result_message += "\n🎉 <b>All logins were successful!</b> Great work!"
+
+    result_message += "\n\n📅 <i>Report generated on:</i> <b>{}</b>".format(time.strftime("%Y-%m-%d %H:%M:%S"))
+
+    # Send the result via Telegram
     send_telegram_message(result_message)
 
 
