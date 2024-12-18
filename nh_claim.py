@@ -110,7 +110,40 @@ def login(session, username, password):
         return False
 
 
-# Main function to process logins
+# Function to claim rewards
+def claim_rewards(session, username, server):
+    """Claim daily rewards for the user."""
+    data = {
+        SRVR_POST: server,
+    }
+
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+    }
+
+    try:
+        response = session.post(CLAIM_URL, data=data, headers=headers)
+        if response.status_code == 200:
+            # Parse the response to find claimed items (example placeholder logic)
+            soup = BeautifulSoup(response.text, "html.parser")
+            items = soup.select(REWARD_CLS)
+            claimed_items = [item.get_text().strip() for item in items]
+            if claimed_items:
+                print(f"Claimed items: {', '.join(claimed_items)}")
+                return claimed_items
+            else:
+                print(f"No items claimed for {username}.")
+                return []
+        else:
+            print(f"Failed to claim rewards for {username}: {response.status_code}")
+            return []
+
+    except Exception as e:
+        print(f"Error during claim for {username}: {e}")
+        return []
+
+
+# Main function to process logins and claim rewards
 def main():
     try:
         data = load_data_from_env()
@@ -131,6 +164,14 @@ def main():
         print(f"Processing login for: {username}")
         if login(session, username, password):
             messages.append(f"✅ <b>{username}</b> logged in successfully.")
+            
+            # Claim rewards after login
+            claimed_items = claim_rewards(session, username, server)
+            if claimed_items:
+                items_message = f"🎁 <b>Items claimed for {username}:</b>\n" + "\n".join(claimed_items)
+                messages.append(items_message)
+            else:
+                messages.append(f"⚠️ <b>{username}</b> did not claim any items.")
         else:
             fails += 1
             messages.append(f"❌ <b>{username}</b> failed to log in.")
@@ -139,7 +180,7 @@ def main():
         time.sleep(2)
 
     # Enhanced Telegram message formatting
-    result_message = "🌟 <b>Login Results</b> 🌟\n\n"
+    result_message = "🌟 <b>Login and Rewards Results</b> 🌟\n\n"
     for message in messages:
         result_message += f"{message}\n"
 
