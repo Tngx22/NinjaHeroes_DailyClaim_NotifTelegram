@@ -6,10 +6,10 @@ import cloudscraper
 from dotenv import load_dotenv
 from bs4 import BeautifulSoup
 
-# Load environment variables from .env
+# Memuat variabel lingkungan dari .env
 load_dotenv()
 
-# Constants
+# Konstanta
 LOGIN_URL = 'https://kageherostudio.com/payment/server_.php'
 EVENT_URL = 'https://kageherostudio.com/event/?event=daily'
 CLAIM_URL = 'https://kageherostudio.com/event/index_.php?act=daily'
@@ -21,22 +21,22 @@ PROD_POST = 'periodId'
 SRVR_POST = 'selserver'
 REWARD_CLS = '.reward-star'
 
-# Telegram Bot credentials from environment variables
+# Kredensial Telegram Bot dari variabel lingkungan
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
 
-# Function to load user data from environment variable
+# Fungsi untuk memuat data pengguna dari variabel lingkungan
 def load_data_from_env():
-    """Load data from the environment variable DATA_JSON."""
+    """Memuat data dari variabel lingkungan DATA_JSON."""
     try:
         raw_data = os.getenv("DATA_JSON")
         if not raw_data:
-            raise ValueError("Environment variable 'DATA_JSON' tidak ditemukan atau kosong.")
+            raise ValueError("Variabel lingkungan 'DATA_JSON' tidak ditemukan atau kosong.")
 
         data = json.loads(raw_data)
 
-        # Validate structure
+        # Validasi struktur data
         if not isinstance(data, list) or not all(isinstance(item, dict) for item in data):
             raise ValueError("Isi 'DATA_JSON' tidak valid. Harus berupa list of dictionaries.")
 
@@ -49,11 +49,11 @@ def load_data_from_env():
         raise Exception(f"Terjadi kesalahan saat memuat DATA_JSON: {e}")
 
 
-# Function to send Telegram messages
+# Fungsi untuk mengirim pesan Telegram
 def send_telegram_message(message):
-    """Sends a message via Telegram Bot with enhanced formatting."""
+    """Mengirim pesan melalui Telegram Bot dengan format yang lebih baik."""
     if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
-        print("Telegram credentials are not set. Please check TELEGRAM_BOT_TOKEN and TELEGRAM_CHAT_ID.")
+        print("Kredensial Telegram tidak diatur. Harap periksa TELEGRAM_BOT_TOKEN dan TELEGRAM_CHAT_ID.")
         return
 
     url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
@@ -66,16 +66,16 @@ def send_telegram_message(message):
     try:
         response = requests.post(url, data=data)
         if response.status_code == 200:
-            print("Telegram notification sent successfully.")
+            print("Notifikasi Telegram berhasil dikirim.")
         else:
-            print(f"Failed to send Telegram notification: {response.status_code}, {response.text}")
+            print(f"Gagal mengirim notifikasi Telegram: {response.status_code}, {response.text}")
     except Exception as e:
-        print(f"Error while sending Telegram message: {e}")
+        print(f"Terjadi kesalahan saat mengirim pesan Telegram: {e}")
 
 
-# Function to handle login
+# Fungsi untuk melakukan login
 def login(session, username, password):
-    """Logs in the user."""
+    """Melakukan login untuk pengguna."""
     data = {
         USER_NAME: username,
         PASS_NAME: password,
@@ -90,29 +90,29 @@ def login(session, username, password):
 
         if response.status_code == 200:
             if "success" in response.url or response.url.endswith("pembayaran.php"):
-                print(f"Successfully logged in for {username}")
+                print(f"Berhasil login untuk {username}")
                 return True
             else:
-                print(f"Unexpected successful response for {username}, URL: {response.url}")
+                print(f"Respons sukses yang tidak terduga untuk {username}, URL: {response.url}")
                 return False
 
         elif response.status_code == 403:
-            print(f"Login failed for {username} (403 Forbidden). Checking for additional info...")
-            print(f"Raw response content: {response.text}")
+            print(f"Login gagal untuk {username} (403 Forbidden). Memeriksa informasi tambahan...")
+            print(f"Konten respons mentah: {response.text}")
             return False
 
         else:
-            print(f"Unexpected response for {username}, status code: {response.status_code}, content: {response.text}")
+            print(f"Respons tidak terduga untuk {username}, status code: {response.status_code}, konten: {response.text}")
             return False
 
     except Exception as e:
-        print(f"Error during login for {username}: {e}")
+        print(f"Terjadi kesalahan saat login untuk {username}: {e}")
         return False
 
 
-# Function to claim rewards
+# Fungsi untuk mengklaim hadiah
 def claim_rewards(session, username, server):
-    """Claim daily rewards for the user."""
+    """Mengklaim hadiah harian untuk pengguna."""
     data = {
         SRVR_POST: server,
     }
@@ -124,36 +124,37 @@ def claim_rewards(session, username, server):
     try:
         response = session.post(CLAIM_URL, data=data, headers=headers)
         if response.status_code == 200:
-            # Parse the response to find claimed items (example placeholder logic)
+            # Parsing respons untuk menemukan item yang diklaim (logika placeholder)
             soup = BeautifulSoup(response.text, "html.parser")
             items = soup.select(REWARD_CLS)
             claimed_items = [item.get_text().strip() for item in items]
             if claimed_items:
-                print(f"Claimed items: {', '.join(claimed_items)}")
+                print(f"Item yang diklaim: {', '.join(claimed_items)}")
                 return claimed_items
             else:
-                print(f"No items claimed for {username}.")
+                print(f"Tidak ada item yang diklaim untuk {username}.")
                 return []
         else:
-            print(f"Failed to claim rewards for {username}: {response.status_code}")
+            print(f"Gagal mengklaim hadiah untuk {username}: {response.status_code}")
             return []
 
     except Exception as e:
-        print(f"Error during claim for {username}: {e}")
+        print(f"Terjadi kesalahan saat mengklaim hadiah untuk {username}: {e}")
         return []
 
 
-# Main function to process logins and claim rewards
+# Fungsi utama untuk memproses login dan klaim hadiah
 def main():
     try:
         data = load_data_from_env()
     except Exception as e:
-        print(f"Error: {e}")
-        send_telegram_message(f"❌ <b>Error in script execution:</b> {str(e)}")
+        print(f"Kesalahan: {e}")
+        send_telegram_message(f"❌ <b>Terjadi kesalahan saat menjalankan skrip:</b> {str(e)}")
         return
 
-    session = cloudscraper.create_scraper()  # Use cloudscraper to handle Cloudflare challenges
+    session = cloudscraper.create_scraper()  # Menggunakan cloudscraper untuk menangani tantangan Cloudflare
     fails = 0
+    success_count = 0
     messages = []
 
     for user in data:
@@ -161,37 +162,36 @@ def main():
         password = user.get("password")
         server = user.get("server")
 
-        print(f"Processing login for: {username}")
+        print(f"Memproses login untuk: {username}")
         if login(session, username, password):
-            messages.append(f"✅ <b>{username}</b> logged in successfully.")
+            success_count += 1
+            messages.append(f"✅ <b>{username}</b> berhasil login.")
             
-            # Claim rewards after login
+            # Klaim hadiah setelah login
             claimed_items = claim_rewards(session, username, server)
             if claimed_items:
-                items_message = f"🎁 <b>Items claimed for {username}:</b>\n" + "\n".join(claimed_items)
+                items_message = f"🎁 <b>Item yang diklaim untuk {username}:</b>\n" + "\n".join(claimed_items)
                 messages.append(items_message)
             else:
-                messages.append(f"⚠️ <b>{username}</b> did not claim any items.")
+                messages.append(f"⚠️ <b>{username}</b> tidak mengklaim item apapun.")
         else:
             fails += 1
-            messages.append(f"❌ <b>{username}</b> failed to log in.")
+            messages.append(f"❌ <b>{username}</b> gagal login.")
 
-        # Add delay to avoid rate-limiting
+        # Tambahkan penundaan untuk menghindari pembatasan laju
         time.sleep(2)
 
-    # Enhanced Telegram message formatting
-    result_message = "🌟 <b>Login and Rewards Results</b> 🌟\n\n"
+    # Format notifikasi Telegram yang lebih baik
+    result_message = "🌟 <b>Hasil Login dan Klaim Hadiah</b> 🌟\n\n"
     for message in messages:
         result_message += f"{message}\n"
 
-    if fails > 0:
-        result_message += f"\n⚠️ <b>{fails}</b> login attempts failed. Please check the credentials or server status."
-    else:
-        result_message += "\n🎉 <b>All logins were successful!</b> Great work!"
+    result_message += f"\n🎉 <b>Total Login Berhasil:</b> {success_count} dari <b>{len(data)}</b> akun.\n"
+    result_message += f"⚠️ <b>Total Login Gagal:</b> {fails} percobaan.\n"
 
-    result_message += "\n\n📅 <i>Report generated on:</i> <b>{}</b>".format(time.strftime("%Y-%m-%d %H:%M:%S"))
+    result_message += "\n\n📅 <i>Laporan dihasilkan pada:</i> <b>{}</b>".format(time.strftime("%Y-%m-%d %H:%M:%S"))
 
-    # Send the result via Telegram
+    # Kirim hasil via Telegram
     send_telegram_message(result_message)
 
 
