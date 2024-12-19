@@ -29,4 +29,4 @@ jobs:
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           DATA_JSON: ${{ secrets.DATA_JSON }}
         run: |
-          python script.py  # Ganti 'script.py' dengan nama file Anda
+          python nh_claim.py  # Ganti 'script.py' dengan nama file Anda
