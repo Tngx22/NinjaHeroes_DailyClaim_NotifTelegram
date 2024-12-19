@@ -1,33 +1,32 @@
-name: AutoClaim Event
+name: Daily Reward Script
 
 on:
   schedule:
-    # Menjalankan setiap 3 jam
-    - cron: "0 */3 * * *"
-
-  workflow_dispatch: # Menjalankan manual jika diperlukan
+    - cron: '0 */3 * * *'  # Menjalankan setiap 3 jam
+  workflow_dispatch:  # Memungkinkan pemicu manual
 
 jobs:
-  auto-claim:
+  run-script:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Python
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: '3.10'  # Versi Python
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install requests cloudscraper beautifulsoup4 python-dotenv
 
-      - name: Run AutoClaim Script
+      - name: Run script
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           DATA_JSON: ${{ secrets.DATA_JSON }}
-        run: python nh_claim.py
+        run: |
+          python script.py  # Ganti 'script.py' dengan nama file Anda
