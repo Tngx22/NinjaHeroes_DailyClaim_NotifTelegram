@@ -9,22 +9,23 @@ from bs4 import BeautifulSoup
 # Memuat variabel lingkungan dari .env
 load_dotenv()
 
-# Konstanta
-LOGIN_URL = 'https://kageherostudio.com/payment/server_.php'
-EVENT_URL = 'https://kageherostudio.com/event/?event=daily'
-CLAIM_URL = 'https://kageherostudio.com/event/index_.php?act=daily'
+# Konstanta URL
+BASE_URL = 'https://kageherostudio.com'
+LOGIN_URL = f'{BASE_URL}/payment/server_.php'
+EVENT_URL = f'{BASE_URL}/event/?event=daily'
+CLAIM_URL = f'{BASE_URL}/event/index_.php?act=daily'
 
+# Field input form
 USER_NAME = 'txtuserid'
 PASS_NAME = 'txtpassword'
 SRVR_POST = 'selserver'
 REWARD_CLS = '.reward-star'
 
-# Kredensial Telegram Bot dari variabel lingkungan
+# Kredensial Telegram
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 TELEGRAM_CHAT_ID = os.getenv("TELEGRAM_CHAT_ID")
 
-
-# Fungsi untuk memuat data pengguna dari variabel lingkungan
+# Fungsi untuk memuat data pengguna
 def load_data_from_env():
     try:
         raw_data = os.getenv("DATA_JSON")
@@ -38,7 +39,6 @@ def load_data_from_env():
         raise ValueError("DATA_JSON mengandung string yang tidak valid sebagai JSON.")
     except Exception as e:
         raise Exception(f"Terjadi kesalahan saat memuat DATA_JSON: {e}")
-
 
 # Fungsi untuk mengirim pesan Telegram
 def send_telegram_message(message):
@@ -56,7 +56,6 @@ def send_telegram_message(message):
     except Exception as e:
         print(f"Kesalahan saat mengirim pesan Telegram: {e}")
 
-
 # Fungsi untuk memeriksa klaim harian
 def is_claimed_today():
     today = time.strftime("%Y-%m-%d")
@@ -66,13 +65,11 @@ def is_claimed_today():
             return last_claim_date == today
     return False
 
-
 # Fungsi untuk menandai klaim selesai hari ini
 def mark_claimed_today():
     today = time.strftime("%Y-%m-%d")
     with open("claimed_today.txt", "w") as file:
         file.write(today)
-
 
 # Fungsi untuk melakukan login
 def login(session, username, password):
@@ -80,7 +77,7 @@ def login(session, username, password):
     headers = {"User-Agent": "Mozilla/5.0"}
     try:
         response = session.post(LOGIN_URL, data=data, headers=headers)
-        if response.status_code == 200 and "success" in response.url:
+        if response.status_code == 200 and "Logout" in response.text:
             print(f"Berhasil login untuk {username}")
             return True
         else:
@@ -90,8 +87,7 @@ def login(session, username, password):
         print(f"Kesalahan saat login untuk {username}: {e}")
         return False
 
-
-# Fungsi untuk mengklaim hadiah
+# Fungsi untuk klaim hadiah
 def claim_rewards(session, username, server):
     data = {SRVR_POST: server}
     headers = {"User-Agent": "Mozilla/5.0"}
@@ -113,7 +109,6 @@ def claim_rewards(session, username, server):
     except Exception as e:
         print(f"Kesalahan saat klaim hadiah untuk {username}: {e}")
         return []
-
 
 # Fungsi utama
 def main():
@@ -157,7 +152,6 @@ def main():
 
     if success_count > 0:
         mark_claimed_today()
-
 
 if __name__ == "__main__":
     main()
